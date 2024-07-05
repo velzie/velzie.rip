@@ -1,0 +1,35 @@
+---
+TEMPLATE=template.html
+title="velzie's blog"
+nofm=1
+---
+<section>
+  <h1>velzie's blog</h1>
+  <p>hi! i post random stuff here infrequently. sometimes it's cool! you might know me for some of my old blog posts,
+    and you can still see them, but note that some of the information is wrong!</p>
+
+
+  <!--$
+    for file in pages/blog/*.md; do
+      filename=$(basename "$file")
+      filename=${filename%.md}
+      filename+=".html"
+      content=$(< "$file")
+      content=${content#*---}
+      data=${content%%---*}
+      content=${html#*---}
+      eval "$data"
+
+cat <<EOF
+<article>
+  <a href="/blog/$filename">
+    <h2>$title</h2>
+    <p>$description</p>
+    <p>$date</p>
+  </a>
+</article>
+EOF
+
+    done
+  -->
+</section>

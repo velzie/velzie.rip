@@ -1,0 +1,14 @@
+---
+TEMPLATE=template.html
+nofm=1
+newcontent=$(pandoc -f gfm <(print "$CONTENT") -o - -t html5)
+---
+
+<div>
+  <h1 class="blogtitle">$title$</h1>
+  <p>$description$</p>
+
+  <hr />
+
+  $newcontent$
+</div>

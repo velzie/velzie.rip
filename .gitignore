@@ -1,0 +1,4 @@
+dist/
+.lastfm_cached
+.lastfm_json
+secrets.sh

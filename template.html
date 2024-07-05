@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <!--$include seo.html -->
+  <link rel="stylesheet" href="/static/style.css" />
+
+  <script src="/static/background.js" type="module"></script>
+</head>
+
+<body class="dark flex col gap-md">
+  <nav class="flex gap">
+    <a href="/">home</a>
+    <a href="/blog">blog</a>
+    <a href="/contact">contact</a>
+  </nav>
+  <div id="mainsplit">
+
+    <main class="flex1">
+      <!--$print "$CONTENT" -->
+      <div class="bottomdecorations flex gap-sm">
+        <a href="https://3d.velzie.rip">enter higher dimension</a>
+        <div class="separator"></div>
+        <div>
+          freaky mode: <input id="freaky" type="checkbox">
+        </div>
+      </div>
+    </main>
+
+
+
+    <div class="flex col gap">
+      <!--$[ -z $nofm ] && include lastfm.astro -->
+    </div>
+  </div>
+
+  <div class="bottomtext">
+    generated
+    <!--$date -u "+%b %d %Y at %H:%M:%S" -->
+    by
+    <!--$readlink /proc/$$/exe -->
+  </div>
+  <script async defer src="https://simple.velzie.rip/latest.js"></script>
+  <noscript><img src="https://simple.velzie.rip/noscript.gif" alt=""
+      referrerpolicy="no-referrer-when-downgrade" /></noscript>
+</body>
+
+</html>

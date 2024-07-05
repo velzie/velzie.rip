@@ -1,0 +1,59 @@
+---
+. ./secrets.sh
+
+if [ -f .lastfm_cached ]; then
+  last=$(<.lastfm_cached)
+  now=$(date +%s)
+
+  diff=$((now - last))
+
+  if [ $diff -lt 20 ]; then
+    json=$(<.lastfm_json)
+  fi
+fi
+
+if [ -z "$json" ]; then
+  json=$(curl -s $URL?method=user.getrecenttracks\&user=$USERNAME\&api_key=$API_KEY\&format=json\&limit=1)
+  echo "$json" > .lastfm_json
+  date +%s > .lastfm_cached
+fi
+
+
+artist=$(jq -r '.recenttracks.track[0].artist."#text"' <<< "$json")
+name=$(jq -r '.recenttracks.track[0].name' <<< "$json")
+image=$(jq -r '.recenttracks.track[0].image[3]."#text"' <<< "$json")
+album=$(jq -r '.recenttracks.track[0].album."#text"' <<< "$json")
+
+datestamp=$(jq -r '.recenttracks.track[0].date.uts' <<< "$json")
+
+if [ "$datestamp" != "null" ]; then
+  now=$(date +%s)
+
+  diff=$((now - datestamp))
+
+  if [ $diff -lt 60 ]; then
+    formatted="just now"
+  elif [ $diff -lt 3600 ]; then
+    formatted="$((diff / 60)) minutes ago"
+  elif [ $diff -lt 86400 ]; then
+    formatted="$((diff / 3600)) hours ago"
+  else
+    formatted=$(date -d @$datestamp "+%b %d, %Y")
+  fi
+
+  nowplaying="<span class=\"fmdate\">$formatted</span>"
+fi
+---
+<aside id="lastfm">
+  <h2><a href="https://lastfm.com/coolelectronics">now playing</a></h2>
+  <div id="lastfmcontent">
+    <img src="$image$" alt="$artist$ - $name$">
+    <div>
+      <span class="name">$name$</span>
+      <span class="artist">by $artist$</span>
+      <span class="album">$album$</span>
+      $nowplaying$
+    </div>
+  </div>
+</aside>
+
