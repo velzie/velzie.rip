@@ -207,6 +207,37 @@ small {
 	margin: 0;
 }
 
+#ytplayer {
+ position:relative;
+ width:25px;
+ height:25px;
+ overflow:hidden;
+}
+
+#ytplayer > .constrain {
+	position:absolute;
+	top:-276px;
+	left:-5px;
+}
+#ytplayer iframe {
+	opacity: 0.01;
+}
+
+#ytplayer > .pause {
+	height: 100%;
+	width: 100%;
+	pointer-events: none;
+	position: relative;
+	z-index: 999;
+	text-align: center;
+}
+
+#ytplayer-container {
+	margin-top: 0.5em;
+	gap: 0.5em;
+	display: flex;
+}
+
 
 button {
 	font-family: var(--font-body);

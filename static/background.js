@@ -1,20 +1,31 @@
-// webgl... so coolll
+const pause = "⏸";
+const play = "▶";
+pausebutton.innerText = play;
+const ytplayercont = document.getElementById("ytplayer-container");
+let focusedcurrently = false;
+window.addEventListener("blur", () => {
+	if (focusedcurrently) {
+		setTimeout(() => ytframe.blur(), 10);
+		if (pausebutton.innerText == play) pausebutton.innerText = pause;
+		else pausebutton.innerText = play;
+	}
+});
+ytplayercont.onmouseenter = () => (focusedcurrently = true);
+ytplayercont.onmouseleave = () => (focusedcurrently = false);
 
-const canvas = document.createElement('canvas');
-canvas.id = 'bgcanvas';
+// webgl... so coolll
+const canvas = document.createElement("canvas");
+canvas.id = "bgcanvas";
 document.body.append(canvas);
 
-
-addEventListener('flamethrower:router:end', () => {
-  setTimeout(() => {
-    // persist canvas through route changes
-    document.body.append(canvas);
-  }, 20);
+addEventListener("flamethrower:router:end", () => {
+	setTimeout(() => {
+		// persist canvas through route changes
+		document.body.append(canvas);
+	}, 20);
 });
 
-// const ctx = canvas.getContext('2d');
-
-const gl = canvas.getContext("webgl", { preserveDrawingBuffer: true })
+const gl = canvas.getContext("webgl", { preserveDrawingBuffer: true });
 
 const BASE_VERTEX_SHADER = `
   attribute vec2 position;
@@ -27,7 +38,9 @@ const BASE_VERTEX_SHADER = `
   }
 `;
 
-const BASE_FRAGMENT_SHADER = await fetch("/static/fragment.glsl").then((res) => res.text());
+const BASE_FRAGMENT_SHADER = await fetch("/static/fragment.glsl").then((res) =>
+	res.text(),
+);
 
 let width = window.innerWidth;
 let height = window.innerHeight;
@@ -35,88 +48,79 @@ let height = window.innerHeight;
 const image = new Image();
 image.crossOrigin = "Anonymous";
 image.src =
-  // "pfp.png"
-  `https://picsum.photos/${width}/${height}`
+	// "pfp.png"
+	`https://picsum.photos/${width}/${height}`;
 // "water.jpg";
 canvas.width = width;
 canvas.height = height;
 
-image.onload = function() {
+image.onload = function () {
+	// let width = 1918
+	// let height = 1440
+	// ctx.drawImage(image, 0, 0, width, height);
+	// let data = ctx.getImageData(0, 0, image.width, image.height).data;
+	// console.log(data);
+	// const thresh = Array.from(data).reduce((sum, value) => sum + value, 0) / (width * height * 4) / 2;
+	// console.log(thresh);
 
+	gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 
-  // let width = 1918
-  // let height = 1440
-  // ctx.drawImage(image, 0, 0, width, height);
-  // let data = ctx.getImageData(0, 0, image.width, image.height).data;
-  // console.log(data);
-  // const thresh = Array.from(data).reduce((sum, value) => sum + value, 0) / (width * height * 4) / 2;
-  // console.log(thresh);
+	const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+	gl.shaderSource(vertexShader, BASE_VERTEX_SHADER);
+	gl.compileShader(vertexShader);
 
-  gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+	const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+	gl.shaderSource(fragmentShader, BASE_FRAGMENT_SHADER);
+	gl.compileShader(fragmentShader);
 
-  const vertexShader = gl.createShader(gl.VERTEX_SHADER);
-  gl.shaderSource(vertexShader, BASE_VERTEX_SHADER);
-  gl.compileShader(vertexShader);
+	const program = gl.createProgram();
+	gl.attachShader(program, vertexShader);
+	gl.attachShader(program, fragmentShader);
+	gl.linkProgram(program);
 
-  const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-  gl.shaderSource(fragmentShader, BASE_FRAGMENT_SHADER);
-  gl.compileShader(fragmentShader);
+	gl.useProgram(program);
 
-  const program = gl.createProgram();
-  gl.attachShader(program, vertexShader);
-  gl.attachShader(program, fragmentShader);
-  gl.linkProgram(program);
+	const VERTICES = new Float32Array([-1, -1, -1, 1, 1, 1, -1, -1, 1, 1, 1, -1]);
 
-  gl.useProgram(program);
+	const vertexBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, VERTICES, gl.STATIC_DRAW);
 
-  const VERTICES = new Float32Array([-1, -1, -1, 1, 1, 1, -1, -1, 1, 1, 1, -1]);
+	const positionLocation = gl.getAttribLocation(program, "position");
+	gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+	gl.enableVertexAttribArray(positionLocation);
 
-  const vertexBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, VERTICES, gl.STATIC_DRAW);
+	const texture = gl.createTexture();
+	gl.activeTexture(gl.TEXTURE0);
+	gl.bindTexture(gl.TEXTURE_2D, texture);
+	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
-  const positionLocation = gl.getAttribLocation(program, "position");
-  gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
-  gl.enableVertexAttribArray(positionLocation);
+	const timeLocation = gl.getUniformLocation(program, "uTime");
+	const timeLocation2 = gl.getUniformLocation(program, "uTime2");
 
-  const texture = gl.createTexture();
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+	const thresholdLocation = gl.getUniformLocation(program, "uThreshold");
 
+	gl.uniform1f(thresholdLocation, 52);
+	function render() {
+		gl.uniform1f(timeLocation, performance.now() / 1000);
 
+		gl.clearColor(1.0, 1.0, 1.0, 1.0);
+		gl.clear(gl.COLOR_BUFFER_BIT);
+		gl.drawArrays(gl.TRIANGLES, 0, 6);
 
-  const timeLocation = gl.getUniformLocation(program, "uTime");
-  const timeLocation2 = gl.getUniformLocation(program, "uTime2");
+		requestAnimationFrame(render);
+	}
 
-  const thresholdLocation = gl.getUniformLocation(program, "uThreshold");
+	setInterval(() => {
+		gl.uniform1f(timeLocation2, performance.now() / 1000);
+	}, 150);
 
-
-  gl.uniform1f(thresholdLocation, 52);
-  function render() {
-    gl.uniform1f(timeLocation, performance.now() / 1000);
-
-    gl.clearColor(1.0, 1.0, 1.0, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
-
-
-    requestAnimationFrame(render);
-  }
-
-  setInterval(() => {
-    gl.uniform1f(timeLocation2, performance.now() / 1000);
-  }, 150);
-
-  requestAnimationFrame(render);
+	requestAnimationFrame(render);
 };
-
-
-
 
 // let refresh;
 // // Placeholder image

@@ -10,13 +10,19 @@ if [ -f .lastfm_cached ]; then
   if [ $diff -lt 20 ]; then
     json=$(<.lastfm_json)
   fi
+  youtubeid=$(<.url_cached)
 fi
 
 if [ -z "$json" ]; then
   json=$(curl -s $URL?method=user.getrecenttracks\&user=$USERNAME\&api_key=$API_KEY\&format=json\&limit=1)
   echo "$json" > .lastfm_json
   date +%s > .lastfm_cached
+
+  url=$(jq -r '.recenttracks.track[0].url' <<< "$json")
+  youtubeid=$(curl -sL "$url" | grep youtube-id | head -1 | awk -F'"' '{print $2}')
+  echo "$youtubeid" > .url_cached
 fi
+
 
 
 artist=$(jq -r '.recenttracks.track[0].artist."#text"' <<< "$json")
@@ -55,5 +61,16 @@ fi
       $nowplaying$
     </div>
   </div>
+
+  <span id="ytplayer-container">
+    listen along
+    <div id="ytplayer">
+      <div class="constrain">
+        <iframe id="ytframe" width="300" height="300" src="https://www.youtube.com/embed/$youtubeid$?rel=0" frameborder=0>
+        </iframe>
+      </div>
+      <div id="pausebutton">⏸️</div>
+    </div>
+  </span>
 </aside>
 
